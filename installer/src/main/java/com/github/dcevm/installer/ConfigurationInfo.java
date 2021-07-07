@@ -37,13 +37,20 @@ import java.util.regex.Pattern;
  * @author Christoph Wimberger
  * @author Ivan Dubrov
  * @author Jiri Bubnik
+ * @author Przemysław Rumik
+ * @author Denis Zygann
  */
 public enum ConfigurationInfo {
 
     // Note: 32-bit is not supported on Mac OS X
     MAC_OS(null, "bsd_amd64_compiler2",
             "lib/client", "lib/server", "lib/dcevm", "lib/server", "lib/dcevm",
-            "bin/java", "libjvm.dylib"),
+            "bin/java", "libjvm.dylib") {
+        @Override
+        public String[] paths() {
+            return new String[] { "/Library/Java/JavaVirtualMachines/" };
+        }
+    },
     LINUX("linux_i486_compiler2", "linux_amd64_compiler2",
             "lib/i386/client", "lib/i386/server", "lib/i386/dcevm", "lib/amd64/server", "lib/amd64/dcevm",
             "bin/java", "libjvm.so") {
@@ -78,11 +85,11 @@ public enum ConfigurationInfo {
     private final String javaExecutable;
     private final String libraryName;
 
-    private ConfigurationInfo(String resourcePath32, String resourcePath64,
-                              String clientPath,
-                              String server32Path, String dcevm32Path,
-                              String server64Path, String dcevm64Path,
-                              String javaExecutable, String libraryName) {
+    ConfigurationInfo(String resourcePath32, String resourcePath64,
+                      String clientPath,
+                      String server32Path, String dcevm32Path,
+                      String server64Path, String dcevm64Path,
+                      String javaExecutable, String libraryName) {
         this.resourcePath32 = resourcePath32;
         this.resourcePath64 = resourcePath64;
         this.clientPath = clientPath;
@@ -211,7 +218,7 @@ public enum ConfigurationInfo {
         return result.toString();
     }
 
-    public boolean isDCEInstalled(Path dir, boolean altjvm) throws IOException {
+    public boolean isDCEInstalled(Path dir, boolean altjvm) {
         Path jreDir;
         if (isJDK(dir)) {
             jreDir = dir.resolve("jre");
@@ -243,7 +250,7 @@ public enum ConfigurationInfo {
         }
     }
 
-    public String getVersionString(Path jreDir, boolean altjvm) throws IOException {
+    public String getVersionString(Path jreDir, boolean altjvm) {
         try {
             if (altjvm) {
                 return executeJava(jreDir,  "-XXaltjvm=dcevm", "-version");
@@ -255,19 +262,20 @@ public enum ConfigurationInfo {
         }
     }
 
-    public boolean is64Bit(Path jreDir) throws IOException {
-        return getVersionString(jreDir, false).contains("64-Bit");
+    public boolean is64Bit(Path jreDir) {
+        String versionString = getVersionString(jreDir, false);
+        return versionString.contains("64-Bit") || versionString.contains("amd64");
     }
 
     public String getJavaVersion(Path jreDir) throws IOException {
-        return getVersionHelper(jreDir, ".*java version.*\"(.*)\".*", true, false);
+        return getVersionHelper(jreDir, ".*(?:java|openjdk) version.*\"(.*)\".*", true, false);
     }
 
     final public String getDCEVersion(Path jreDir, boolean altjvm) throws IOException {
         return getVersionHelper(jreDir, ".*Dynamic Code Evolution.*build ([^,]+),.*", false, altjvm);
     }
 
-    private String getVersionHelper(Path jreDir, String regex, boolean javaVersion, boolean altjvm) throws IOException {
+    private String getVersionHelper(Path jreDir, String regex, boolean javaVersion, boolean altjvm) {
         String version = getVersionString(jreDir, altjvm);
         version = version.replaceAll("\n", "");
         Matcher matcher = Pattern.compile(regex).matcher(version);

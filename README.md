@@ -1,3 +1,8 @@
+# NEWS: Dcevm-11 on Trava OpenJDK
+
+There is a new distribution channel for DCEVM-11 binaries on - [TravaOpenjdk](https://github.com/TravaOpenJDK/trava-jdk-11-dcevm)!
+
+
 # DCEVM
 
 This project is a fork of original [DCEVM](http://ssw.jku.at/dcevm/) project.
@@ -7,15 +12,6 @@ The purpose of the project is to maintain enhanced class redefinition functional
 ## Binaries
 
 You can download binaries [here](https://dcevm.github.io/).
-
-## Dcevm for Java9 and Java10
-
-Dcevm8 is last version supported by this project. New versions are moved to separated projects extended from OpenJDK under HotswapProjects umbrella. 
-
-* [Dcevm9](https://github.com/HotswapProjects/openjdk-jdk9)
-* [Dcevm10](https://github.com/HotswapProjects/openjdk-jdk10)
-
-Dcevm patch is hosted in dedicated **dcevm** branch in each repository.
 
 ## Supported versions
 
@@ -49,6 +45,13 @@ export CC=/usr/local/bin/gcc-4.8
 export CFLAGS=-fobjc-exceptions
 export CXX=/usr/local/bin/g++-4.8
 export SA_LDFLAGS=-fobjc-exceptions
+```
+
+### Linux gcc8 specific prebuild steps
+
+```sh
+export CFLAGS="${CFLAGS//-O2/-O3} ${CPPFLAGS} -Wno-error=deprecated-declarations -Wno-error=stringop-overflow= -Wno-error=return-type -Wno-error=cpp -fno-lifetime-dse -fno-delete-null-pointer-checks"
+export CXXFLAGS="${CXXFLAGS} ${CPPFLAGS}"
 ```
 
 ### Compiling DCEVM
